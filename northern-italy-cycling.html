@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venice to Alpe d'Huez — Epic Alpine Cycling Route</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --orange: #FC4C02;
+    --orange-dark: #e04400;
+    --navy: #1a1a2e;
+    --slate: #2d2d44;
+    --snow: #f8f7f4;
+    --stone: #e8e6e1;
+    --text: #333;
+    --text-light: #666;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--snow);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background:
+      linear-gradient(135deg, rgba(26,26,46,0.82) 0%, rgba(45,45,68,0.65) 50%, rgba(26,26,46,0.82) 100%),
+      url('https://images.unsplash.com/photo-1605540436563-5bca919ae766?w=1920&q=80') center/cover no-repeat;
+    color: white;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 120px;
+    background: linear-gradient(transparent, var(--snow));
+    z-index: 1;
+  }
+
+  .hero-content { position: relative; z-index: 2; max-width: 850px; padding: 2rem; }
+
+  .hero-badge {
+    display: inline-block;
+    background: var(--orange);
+    color: white;
+    padding: 0.4rem 1.2rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 span { color: var(--orange); }
+
+  .hero p {
+    font-size: 1.15rem;
+    font-weight: 300;
+    opacity: 0.9;
+    max-width: 650px;
+    margin: 0 auto 2rem;
+  }
+
+  .route-summary {
+    display: inline-flex;
+    gap: 2rem;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.15);
+    margin-top: 0.5rem;
+  }
+
+  .route-summary .rs-item { text-align: center; }
+  .route-summary .rs-value { font-size: 1.4rem; font-weight: 700; display: block; }
+  .route-summary .rs-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 140px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    animation: bounce 2s infinite;
+    opacity: 0.7;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: white;
+    cursor: pointer;
+  }
+
+  .scroll-hint::after { content: '↓'; display: block; text-align: center; font-size: 1.5rem; margin-top: 0.3rem; }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(10px); }
+  }
+
+  /* MAP */
+  .map-section {
+    max-width: 1200px;
+    margin: -40px auto 0;
+    padding: 0 1.5rem;
+    position: relative;
+    z-index: 3;
+  }
+
+  .map-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+  }
+
+  .map-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--stone);
+    flex-wrap: wrap;
+    gap: 0.8rem;
+  }
+
+  .map-header h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; }
+
+  .map-legend { display: flex; gap: 1.2rem; font-size: 0.8rem; color: var(--text-light); flex-wrap: wrap; }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  #overview-map { height: 500px; }
+
+  /* JOURNEY TRACKER */
+  .journey-bar {
+    max-width: 1200px;
+    margin: 3rem auto 0;
+    padding: 0 1.5rem;
+  }
+
+  .journey-track {
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    padding: 1rem 0;
+  }
+
+  .journey-stop {
+    text-align: center;
+    min-width: 72px;
+    flex-shrink: 0;
+  }
+
+  .journey-stop .dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--orange);
+    margin: 0 auto 0.4rem;
+    border: 3px solid white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+
+  .journey-stop .stop-name { font-size: 0.65rem; font-weight: 600; color: var(--navy); line-height: 1.2; }
+
+  .journey-line {
+    flex: 1;
+    height: 3px;
+    background: linear-gradient(90deg, var(--orange), #f57f17);
+    min-width: 14px;
+    border-radius: 2px;
+  }
+
+  /* SECTION TITLES */
+  .section-title { text-align: center; padding: 5rem 1.5rem 3rem; }
+
+  .section-title h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+  }
+
+  .section-title p { color: var(--text-light); max-width: 600px; margin: 0 auto; font-size: 1.05rem; }
+
+  /* STAGE BADGE */
+  .stage-badge {
+    display: inline-block;
+    background: var(--navy);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0.25rem 0.7rem;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+
+  /* ROUTE CARDS WITH PHOTOS */
+  .routes-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+    display: grid;
+    gap: 2.5rem;
+  }
+
+  .route-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .route-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  }
+
+  .route-card:nth-child(even) { direction: rtl; }
+  .route-card:nth-child(even) > * { direction: ltr; }
+
+  .route-photo {
+    min-height: 380px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    background-color: #ddd;
+  }
+
+  .route-photo.loading {
+    background: linear-gradient(135deg, #e8e6e1 0%, #d5d2cc 50%, #e8e6e1 100%);
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .route-photo::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60%;
+    background: linear-gradient(transparent, rgba(0,0,0,0.25));
+  }
+
+  .photo-credit {
+    position: absolute;
+    bottom: 8px;
+    right: 10px;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.6);
+    z-index: 2;
+    text-decoration: none;
+  }
+
+  .route-info { padding: 2rem 2.5rem; display: flex; flex-direction: column; justify-content: center; }
+
+  .route-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    margin-bottom: 0.8rem;
+    width: fit-content;
+  }
+
+  .tag-legendary { background: #fff3e0; color: #e65100; }
+  .tag-hc { background: #fce4ec; color: #c62828; }
+  .tag-epic { background: #e8eaf6; color: #283593; }
+  .tag-tdf { background: #fff9c4; color: #f57f17; }
+  .tag-giro { background: #fce4ec; color: #ad1457; }
+
+  .route-info h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--navy);
+    margin-bottom: 0.3rem;
+  }
+
+  .route-info .subtitle { font-size: 0.9rem; color: var(--text-light); margin-bottom: 1rem; font-style: italic; }
+  .route-info .description { color: var(--text-light); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.7; }
+
+  .route-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat {
+    text-align: center;
+    padding: 0.8rem 0.4rem;
+    background: var(--snow);
+    border-radius: 8px;
+  }
+
+  .stat-value { font-size: 1.2rem; font-weight: 700; color: var(--navy); display: block; }
+  .stat-label { font-size: 0.7rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* STRAVA BUTTONS */
+  .strava-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--orange);
+    color: white;
+    text-decoration: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .strava-btn:hover { background: var(--orange-dark); transform: scale(1.03); }
+  .strava-btn svg { width: 18px; height: 18px; }
+
+  .route-links { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+  .segment-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    color: var(--orange);
+    text-decoration: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    border: 1.5px solid var(--orange);
+    transition: all 0.2s ease;
+  }
+
+  .segment-btn:hover { background: #fff5f0; }
+
+  /* MULTI-DAY */
+  .multiday-section {
+    background: var(--navy);
+    color: white;
+    padding: 5rem 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .multiday-section .section-title h2 { color: white; }
+  .multiday-section .section-title p { color: rgba(255,255,255,0.6); }
+
+  .multiday-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .multiday-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    transition: background 0.3s ease;
+  }
+
+  .multiday-card:hover { background: rgba(255,255,255,0.1); }
+  .multiday-card h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
+  .multiday-card .meta { font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 1rem; }
+  .multiday-card p { color: rgba(255,255,255,0.7); font-size: 0.9rem; margin-bottom: 1.2rem; }
+  .multiday-card .strava-btn { font-size: 0.8rem; padding: 0.5rem 1rem; }
+
+  /* TIPS */
+  .tips-section { max-width: 900px; margin: 0 auto; padding: 5rem 1.5rem; }
+  .tips-section h2 { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--navy); text-align: center; margin-bottom: 2.5rem; }
+
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .tip-card {
+    background: white;
+    padding: 1.8rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--orange);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+
+  .tip-card h4 { font-size: 1rem; color: var(--navy); margin-bottom: 0.5rem; }
+  .tip-card p { font-size: 0.9rem; color: var(--text-light); }
+
+  footer {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--stone);
+  }
+
+  footer a { color: var(--orange); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    .route-card { grid-template-columns: 1fr !important; }
+    .route-card:nth-child(even) { direction: ltr; }
+    .route-stats { grid-template-columns: repeat(2, 1fr); }
+    .route-photo { min-height: 250px !important; }
+    #overview-map { height: 350px; }
+    .route-summary { gap: 1rem; padding: 0.8rem 1.2rem; flex-wrap: wrap; }
+    .route-summary .rs-value { font-size: 1.1rem; }
+    .journey-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">Venice &rarr; Dolomites &rarr; Italian Alps &rarr; French Alps</div>
+    <h1>Venice to <span>Alpe d'Huez</span></h1>
+    <p>An east-to-west traverse across the greatest cycling climbs in the Alps &mdash; from the canals of Venice through the Dolomites and over the legendary passes to the 21 hairpins of Alpe d'Huez.</p>
+    <div class="route-summary">
+      <div class="rs-item"><span class="rs-value">11</span><span class="rs-label">Climbs</span></div>
+      <div class="rs-item"><span class="rs-value">~500</span><span class="rs-label">Miles</span></div>
+      <div class="rs-item"><span class="rs-value">~75,000</span><span class="rs-label">Ft Climbing</span></div>
+      <div class="rs-item"><span class="rs-value">3</span><span class="rs-label">Countries</span></div>
+    </div>
+  </div>
+  <div class="scroll-hint">EXPLORE ROUTES</div>
+</section>
+
+<!-- OVERVIEW MAP -->
+<section class="map-section">
+  <div class="map-card">
+    <div class="map-header">
+      <h2>The Route: Venice &rarr; Alpe d'Huez</h2>
+      <div class="map-legend">
+        <span><span class="legend-dot" style="background:#e65100"></span> Legendary</span>
+        <span><span class="legend-dot" style="background:#c62828"></span> HC Category</span>
+        <span><span class="legend-dot" style="background:#283593"></span> Epic</span>
+        <span><span class="legend-dot" style="background:#f57f17"></span> Tour de France</span>
+      </div>
+    </div>
+    <div id="overview-map"></div>
+  </div>
+</section>
+
+<!-- JOURNEY TRACKER -->
+<div class="journey-bar">
+  <div class="journey-track">
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Venice</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Tre Cime</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Giau</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Pordoi</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Stelvio</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Mortirolo</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Gavia</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Finestre</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Agnello</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Izoard</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Galibier</div></div>
+    <div class="journey-line"></div>
+    <div class="journey-stop"><div class="dot"></div><div class="stop-name">Alpe d'Huez</div></div>
+  </div>
+</div>
+
+<div class="section-title">
+  <h2>The Climbs, East to West</h2>
+  <p>Starting from Venice, each climb takes you deeper into the Alps. The Dolomites give way to the Italian giants, then the high passes of Piedmont carry you across the border into France.</p>
+</div>
+
+<div class="routes-grid">
+
+  <!-- 1. TRE CIME -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-trecime">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 1 &middot; DOLOMITES EAST</span>
+      <span class="route-tag tag-epic">Epic &middot; UNESCO Heritage</span>
+      <h3>Tre Cime di Lavaredo</h3>
+      <p class="subtitle">The Three Peaks &mdash; Summit: 7,503 ft</p>
+      <p class="description">Your first climb after leaving Venice. A toll road leads to the Rifugio Auronzo beneath cycling's most photographed backdrop: the three iconic limestone towers. The climb from Misurina is short but fierce, with sustained double-digit gradients on a narrow road and increasingly surreal views.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">4.2</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">1,870</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">7.6%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">15%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/657860" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. GIAU -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-giau">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 2 &middot; DOLOMITES</span>
+      <span class="route-tag tag-hc">HC Category &middot; Dolomites</span>
+      <h3>Passo Giau</h3>
+      <p class="subtitle">The Hidden Gem &mdash; Summit: 7,336 ft</p>
+      <p class="description">Often called the most beautiful pass in the Dolomites, Giau combines brutal climbing with otherworldly scenery. The south side from Selva di Cadore features exposed switchbacks high above the treeline, surrounded by an amphitheatre of craggy peaks. The final miles above 6,500 ft feel like cycling on the roof of the world.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">6.2</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">3,510</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">9.3%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">14%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/12986255" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. PORDOI -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-pordoi">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 3 &middot; SELLA RONDA</span>
+      <span class="route-tag tag-epic">Epic &middot; Dolomites</span>
+      <h3>Passo Pordoi</h3>
+      <p class="subtitle">The Heart of the Dolomites &mdash; Summit: 7,346 ft</p>
+      <p class="description">Rising between the Sella and Marmolada massifs, Pordoi is the highest pass on the classic Sella Ronda loop and a regular Giro d'Italia feature. Its wide, sweeping switchbacks offer jaw-dropping views of towering Dolomite walls. While here, ride the full 32-mile Sellaronda circuit over four passes.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">5.8</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">2,484</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">7.1%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">10%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/9981244" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+        <a href="https://www.strava.com/routes/2850818" target="_blank" class="segment-btn">Sella Ronda Loop</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. STELVIO -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-stelvio">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 4 &middot; THE BIG ONE</span>
+      <span class="route-tag tag-legendary">Legendary &middot; Cima Coppi</span>
+      <h3>Passo dello Stelvio</h3>
+      <p class="subtitle">The King of Alpine Passes &mdash; Summit: 9,045 ft</p>
+      <p class="description">The highest paved pass in the Eastern Alps and one of cycling's holiest climbs. The Bormio side features 40 numbered hairpins carving through an almost vertical valley wall. First raced in the 1953 Giro d'Italia, it remains the roof of Italian cycling. This is the centrepiece of your trip.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">13.4</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">5,082</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">7.1%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">12%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/623488" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+        <a href="https://www.strava.com/segments/1903305" target="_blank" class="segment-btn">Full Climb Segment</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. MORTIROLO -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-mortirolo">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 5 &middot; BORMIO</span>
+      <span class="route-tag tag-hc">HC Category &middot; Giro Classic</span>
+      <h3>Passo del Mortirolo</h3>
+      <p class="subtitle">The Steepest Beast &mdash; Summit: 6,076 ft</p>
+      <p class="description">Feared by Giro riders since 1990, the Mortirolo from Mazzo di Valtellina is one of the hardest climbs in professional cycling. Sustained double-digit gradients and a narrow road through dense forest make this a true test of will. A monument to Marco Pantani marks the spot where Il Pirata attacked.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">7.7</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">4,085</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">11.0%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">20%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/902913" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. GAVIA -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-gavia">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 6 &middot; BORMIO</span>
+      <span class="route-tag tag-legendary">Legendary &middot; Giro Icon</span>
+      <h3>Passo Gavia</h3>
+      <p class="subtitle">Hampsten's Snowstorm &mdash; Summit: 8,599 ft</p>
+      <p class="description">Forever etched in cycling lore by Andy Hampsten's ride through a blizzard in the 1988 Giro. The climb from Ponte di Legno is relentless: 10 miles at nearly 8% average, gaining over 4,190 ft. At 8,599 ft, it's one of the highest passes in the Alps, with raw, exposed scenery even in summer.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">10.3</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">4,192</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">7.7%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">16%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/9398424" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. FINESTRE -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-finestre">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 7 &middot; PIEDMONT</span>
+      <span class="route-tag tag-giro">Giro Legend &middot; The White Road</span>
+      <h3>Colle delle Finestre</h3>
+      <p class="subtitle">The Dirt Road of the Giro &mdash; Summit: 7,146 ft</p>
+      <p class="description">The only major Giro climb with an extended unpaved section. The last 5 miles are on white gravel roads carved into the mountainside, making it one of the most dramatic finishes in Grand Tour history. The gradient rarely dips below 9%, and the exposed dirt switchbacks near the summit are utterly unforgettable.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">11.0</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">5,463</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">9.2%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">17%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/657942" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+        <a href="https://www.strava.com/segments/1797766" target="_blank" class="segment-btn">Gravel Section</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. AGNELLO -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-agnello">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 8 &middot; ITALY–FRANCE BORDER</span>
+      <span class="route-tag tag-legendary">Legendary &middot; Border Crossing</span>
+      <h3>Colle dell'Agnello</h3>
+      <p class="subtitle">The Roof of the Border &mdash; Summit: 9,003 ft</p>
+      <p class="description">At 9,003 ft, this is the highest paved border crossing in the Alps. The Italian side from Casteldelfino is a monster: 14 miles with the upper half from Chianale averaging 10%. You cross into France at the summit, with jaw-dropping views into the Queyras valley. A perfect gateway between Italy and the French Alps.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">14.0</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">4,839</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">6.5%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">14%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/1422437" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. IZOARD -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-izoard">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 9 &middot; FRENCH ALPS</span>
+      <span class="route-tag tag-tdf">Tour de France &middot; Moonscape</span>
+      <h3>Col d'Izoard</h3>
+      <p class="subtitle">The Casse D&eacute;serte &mdash; Summit: 7,743 ft</p>
+      <p class="description">A Tour de France legend defined by the haunting Casse D&eacute;serte near the summit: a barren, otherworldly moonscape of eroded scree and rocky pinnacles. From Guillestre, the climb winds through forests before emerging into this alien landscape. Memorials to Coppi and Bobet mark the hallowed ground.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">12.0</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">3,878</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">6.0%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">14%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/1665204" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. GALIBIER -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-galibier">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">STAGE 10 &middot; FRENCH ALPS</span>
+      <span class="route-tag tag-tdf">Tour de France &middot; The Giant</span>
+      <h3>Col du Galibier</h3>
+      <p class="subtitle">The Roof of the Tour &mdash; Summit: 8,668 ft</p>
+      <p class="description">One of the most frequently climbed passes in Tour de France history. From Valloire, the road winds through alpine pastures before a brutal final ramp to the col. The panoramic views from the summit, with Mont Blanc visible on clear days, are staggering. Just one valley separates you from the finish line.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">11.3</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">4,495</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">6.9%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">12%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/5162836" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+        <a href="https://www.strava.com/segments/5142903" target="_blank" class="segment-btn">North Side</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. ALPE D'HUEZ -->
+  <div class="route-card">
+    <div class="route-photo loading" id="photo-huez">
+      <a href="https://unsplash.com" target="_blank" class="photo-credit">Photo: Unsplash</a>
+    </div>
+    <div class="route-info">
+      <span class="stage-badge">THE FINISH &middot; FRENCH ALPS</span>
+      <span class="route-tag tag-tdf">Tour de France &middot; 21 Bends</span>
+      <h3>Alpe d'Huez</h3>
+      <p class="subtitle">The Most Famous Climb in Cycling &mdash; Summit: 6,102 ft</p>
+      <p class="description">The grand finale. The 21 numbered hairpins rising from Bourg-d'Oisans have been a Tour de France fixture since 1952, and every switchback is named after a stage winner. The gradient hits hard from the first pedal stroke and rarely relents. After 500 miles and 10 legendary climbs, this is where you raise your arms.</p>
+      <div class="route-stats">
+        <div class="stat"><span class="stat-value">8.6</span><span class="stat-label">miles</span></div>
+        <div class="stat"><span class="stat-value">3,675</span><span class="stat-label">ft gain</span></div>
+        <div class="stat"><span class="stat-value">8.1%</span><span class="stat-label">avg grade</span></div>
+        <div class="stat"><span class="stat-value">13%</span><span class="stat-label">max grade</span></div>
+      </div>
+      <div class="route-links">
+        <a href="https://www.strava.com/segments/4767683" target="_blank" class="strava-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+          View on Strava
+        </a>
+        <a href="https://www.strava.com/segments/1788699" target="_blank" class="segment-btn">Official Segment</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MULTI-DAY -->
+<section class="multiday-section">
+  <div class="section-title">
+    <h2>Epic Day Rides Along the Way</h2>
+    <p>While on your traverse, these curated Strava routes combine nearby passes into monster single-day rides.</p>
+  </div>
+  <div class="multiday-grid">
+    <div class="multiday-card">
+      <h3>Stelvio &ndash; Mortirolo &ndash; Gavia Loop</h3>
+      <p class="meta">125.4 mi &middot; ~18,045 ft climbing &middot; Bormio start/finish</p>
+      <p>The ultimate Italian Alps triple crown. Start from Bormio, summit the Stelvio, descend and tackle the brutal Mortirolo, then finish over the Gavia. Three Giro legends in one unforgettable day.</p>
+      <a href="https://www.strava.com/routes/718366" target="_blank" class="strava-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        View Route on Strava
+      </a>
+    </div>
+    <div class="multiday-card">
+      <h3>Sellaronda &mdash; The Four Passes</h3>
+      <p class="meta">31.9 mi &middot; 5,610 ft climbing &middot; Dolomites circuit</p>
+      <p>Loop the Sella massif over four iconic Dolomite passes: Campolongo, Pordoi, Sella, and Gardena. Often called the most beautiful bike ride in the world. Perfect for a rest-day ride from Corvara or Canazei.</p>
+      <a href="https://www.strava.com/routes/2850818" target="_blank" class="strava-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        View Route on Strava
+      </a>
+    </div>
+    <div class="multiday-card">
+      <h3>Galibier &ndash; Izoard Loop</h3>
+      <p class="meta">53.9 mi &middot; ~8,200 ft climbing &middot; Brian&ccedil;on base</p>
+      <p>A classic French Alps double from Brian&ccedil;on. Tackle the Galibier via the Col du Lautaret, descend to Valloire and return, then head south over the Izoard. Two TdF giants in a single ride from cycling's ultimate Alpine town.</p>
+      <a href="https://www.strava.com/routes/14707100" target="_blank" class="strava-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
+        View Route on Strava
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- TIPS -->
+<section class="tips-section">
+  <h2>Planning Your Traverse</h2>
+  <div class="tips-grid">
+    <div class="tip-card">
+      <h4>Best Season</h4>
+      <p>Late June through mid-September. High passes like Stelvio, Gavia, Agnello, and Galibier typically open in late May and close in October. July and August are warmest but busiest.</p>
+    </div>
+    <div class="tip-card">
+      <h4>Suggested Itinerary</h4>
+      <p>Allow 10&ndash;14 days for the full traverse, mixing big climbing days with transfer and rest days. Base yourself in Cortina (Dolomites), Bormio (Stelvio area), Susa (Finestre), and Brian&ccedil;on (French Alps).</p>
+    </div>
+    <div class="tip-card">
+      <h4>Gear Up</h4>
+      <p>Pack a wind vest and arm warmers &mdash; descents from 8,000+ ft are cold even in summer. Compact gearing (34/32 or lower) is essential for Mortirolo, Finestre, and Agnello. Consider 28mm+ tires for the Finestre gravel.</p>
+    </div>
+    <div class="tip-card">
+      <h4>Getting There &amp; Away</h4>
+      <p>Fly into Venice Marco Polo (VCE) to start. Fly home from Lyon (LYS) or Geneva (GVA) after finishing at Alpe d'Huez. Bike boxes can be shipped ahead via SendMyBag or similar services.</p>
+    </div>
+    <div class="tip-card">
+      <h4>Border Crossings</h4>
+      <p>You'll cross from Italy to France at Colle dell'Agnello. No border checks within the Schengen Area &mdash; just a sign and a spectacular view. Carry ID/passport anyway for hotel check-ins.</p>
+    </div>
+    <div class="tip-card">
+      <h4>Car-Free Days</h4>
+      <p>Look for Sella Ronda Bike Day (June), Stelvio Bike Day, and the &Eacute;tape du Tour in France for car-free climbing. These events draw thousands and are unforgettable experiences.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Venice &rarr; Alpe d'Huez Route Planner &middot; Strava links open in new tabs &middot; Maps powered by <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> & <a href="https://leafletjs.com" target="_blank">Leaflet</a> &middot; Photos via <a href="https://unsplash.com" target="_blank">Unsplash</a></p>
+</footer>
+
+<script>
+const climbs = [
+  { lat: 46.6190, lng: 12.3020, name: 'Tre Cime di Lavaredo',  elev: '7,503 ft', color: '#283593' },
+  { lat: 46.4836, lng: 12.0536, name: 'Passo Giau',            elev: '7,336 ft', color: '#c62828' },
+  { lat: 46.4875, lng: 11.8130, name: 'Passo Pordoi',           elev: '7,346 ft', color: '#283593' },
+  { lat: 46.5285, lng: 10.4532, name: 'Passo dello Stelvio',    elev: '9,045 ft', color: '#e65100' },
+  { lat: 46.2478, lng: 10.2946, name: 'Passo del Mortirolo',    elev: '6,076 ft', color: '#c62828' },
+  { lat: 46.3458, lng: 10.4897, name: 'Passo Gavia',            elev: '8,599 ft', color: '#e65100' },
+  { lat: 45.0753, lng: 7.0575,  name: 'Colle delle Finestre',   elev: '7,146 ft', color: '#ad1457' },
+  { lat: 44.6833, lng: 6.9781,  name: "Colle dell'Agnello",     elev: '9,003 ft', color: '#e65100' },
+  { lat: 44.8203, lng: 6.7344,  name: "Col d'Izoard",           elev: '7,743 ft', color: '#f57f17' },
+  { lat: 45.0642, lng: 6.4078,  name: 'Col du Galibier',        elev: '8,668 ft', color: '#f57f17' },
+  { lat: 45.0922, lng: 6.0714,  name: "Alpe d'Huez",            elev: '6,102 ft', color: '#f57f17' },
+];
+
+const venice = { lat: 45.4408, lng: 12.3155 };
+
+function createIcon(color, size) {
+  size = size || 28;
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><svg width="${size*0.5}" height="${size*0.5}" viewBox="0 0 24 24" fill="white"><path d="M12 2L2 22h20L12 2zm0 5l6.5 13h-13L12 7z"/></svg></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor: [0, -size/2]
+  });
+}
+
+const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+const tileAttr = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>';
+
+const overviewMap = L.map('overview-map', { scrollWheelZoom: false }).setView([45.8, 9.5], 7);
+L.tileLayer(tileUrl, { attribution: tileAttr, maxZoom: 17 }).addTo(overviewMap);
+
+// Venice start
+L.marker([venice.lat, venice.lng], {
+  icon: L.divIcon({
+    className: 'custom-marker',
+    html: '<div style="width:32px;height:32px;border-radius:50%;background:#00695c;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;color:white;">&#9733;</div>',
+    iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -16]
+  })
+}).addTo(overviewMap).bindPopup('<strong>START: Venice</strong>');
+
+// Climb markers
+climbs.forEach((c, i) => {
+  L.marker([c.lat, c.lng], { icon: createIcon(c.color) })
+    .addTo(overviewMap)
+    .bindPopup(`<strong>${i+1}. ${c.name}</strong><br>${c.elev}`);
+});
+
+// Route line
+const routePoints = [[venice.lat, venice.lng], ...climbs.map(c => [c.lat, c.lng])];
+L.polyline(routePoints, { color: '#FC4C02', weight: 3, opacity: 0.6, dashArray: '8, 8' }).addTo(overviewMap);
+
+// Fit bounds
+overviewMap.fitBounds(L.latLngBounds(routePoints), { padding: [40, 40] });
+
+document.querySelector('.scroll-hint')?.addEventListener('click', () => {
+  document.querySelector('.map-section').scrollIntoView({ behavior: 'smooth' });
+});
+
+// --- Photo loader with Unsplash URLs ---
+var photoUrls = {
+  'photo-trecime': [
+    'https://images.unsplash.com/photo-1662047919337-d1c9d2794047?w=1000&q=80&fit=crop'
+  ],
+  'photo-giau': [
+    'https://images.unsplash.com/photo-1649662231372-0ca430eb5b01?w=1000&q=80&fit=crop'
+  ],
+  'photo-pordoi': [
+    'https://images.unsplash.com/photo-1574320085431-ae6c4f040cdc?w=1000&q=80&fit=crop'
+  ],
+  'photo-stelvio': [
+    'https://images.unsplash.com/photo-1503410759647-41040b696833?w=1000&q=80&fit=crop'
+  ],
+  'photo-mortirolo': [
+    'https://images.unsplash.com/photo-1697751260326-6d875b5674be?w=1000&q=80&fit=crop'
+  ],
+  'photo-gavia': [
+    'https://images.unsplash.com/photo-1723328238436-9855b296ab4e?w=1000&q=80&fit=crop'
+  ],
+  'photo-finestre': [
+    'https://images.unsplash.com/photo-1654073020395-b23c4cccfa49?w=1000&q=80&fit=crop'
+  ],
+  'photo-agnello': [
+    'https://images.unsplash.com/photo-1689771651754-5164f211899a?w=1000&q=80&fit=crop'
+  ],
+  'photo-izoard': [
+    'https://images.unsplash.com/photo-1746059876601-0286f7b40729?w=1000&q=80&fit=crop'
+  ],
+  'photo-galibier': [
+    'https://images.unsplash.com/photo-1550047510-955ebfb439a8?w=1000&q=80&fit=crop'
+  ],
+  'photo-huez': [
+    'https://images.unsplash.com/photo-1685428081741-a9710684f7ef?w=1000&q=80&fit=crop'
+  ]
+};
+
+function tryLoad(id, urls, i) {
+  if (i >= urls.length) {
+    var el = document.getElementById(id);
+    if (el) { el.classList.remove('loading'); el.style.background = 'linear-gradient(135deg, #3a506b 0%, #1c2541 100%)'; }
+    return;
+  }
+  var img = new Image();
+  img.onload = function() {
+    var el = document.getElementById(id);
+    if (el) { el.style.backgroundImage = 'url(' + urls[i] + ')'; el.classList.remove('loading'); }
+  };
+  img.onerror = function() { tryLoad(id, urls, i + 1); };
+  img.src = urls[i];
+}
+
+Object.keys(photoUrls).forEach(function(id) { tryLoad(id, photoUrls[id], 0); });
+</script>
+
+</body>
+</html>
